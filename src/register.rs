@@ -51,3 +51,46 @@ impl Register {
         self.register_b = new_value;
     }
 }
+
+#[cfg(test)]
+mod tests {
+    use crate::register::Register;
+
+    #[test]
+    fn test_set_register_a() {
+        let mut register = Register::new();
+        register.set_register_a(0b0110);
+        assert_eq!(register.register_a(), 0b0110);
+    }
+
+    #[test]
+    fn test_set_register_b() {
+        let mut register = Register::new();
+        register.set_register_b(0b0110);
+        assert_eq!(register.register_b(), 0b0110);
+    }
+
+    #[test]
+    fn test_set_carry_flag() {
+        let mut register = Register::new();
+        register.set_carry_flag(1);
+        assert_eq!(register.carry_flag(), 1);
+    }
+
+    #[test]
+    fn test_set_pc() {
+        let mut register = Register::new();
+        register.set_pc(10);
+        assert_eq!(register.pc(), 10);
+    }
+
+    #[test]
+    fn test_incr_pc() {
+        let mut register = Register::new();
+        assert_eq!(register.pc(), 0);
+        register.incr_pc();
+        assert_eq!(register.pc(), 1);
+        register.incr_pc();
+        assert_eq!(register.pc(), 2);
+    }
+}
