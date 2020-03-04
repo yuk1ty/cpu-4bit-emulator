@@ -7,9 +7,7 @@ impl Rom {
 
     pub fn new() -> Self {
         let memory_array = Vec::with_capacity(Self::MEMORY_SIZE);
-        Self {
-            memory_array
-        }
+        Self { memory_array }
     }
 
     pub fn read(&self, pc: u8) -> u8 {
