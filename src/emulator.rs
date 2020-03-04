@@ -1,14 +1,36 @@
 use crate::error::EmulatorErr;
 use crate::op::Opcode;
 use num_traits::FromPrimitive;
+use std::cell::RefCell;
+use crate::register::Register;
+use crate::rom::Rom;
 
-pub struct CpuEmulator;
+pub struct CpuEmulator {
+    register: RefCell<Register>,
+    rom: RefCell<Rom>,
+}
 
 type ImData = u8;
 
 impl CpuEmulator {
     pub fn new() -> Self {
-        Self
+        Self {
+            register: RefCell::new(Register::new()),
+            rom: RefCell::new(Rom::new())
+        }
+    }
+
+    pub fn fetch(&self) -> u8 {
+        let pc = self.register.borrow().pc;
+        if self.rom.borrow().size() <= pc {
+            return 0;
+        }
+
+        let code = self.rom.borrow().read(pc);
+
+        self.register.borrow_mut().incr_pc();
+
+        code
     }
 
     pub fn decode(&self, data: u8) -> Result<(Opcode, ImData), EmulatorErr> {
