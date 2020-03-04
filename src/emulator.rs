@@ -23,6 +23,14 @@ impl CpuEmulator {
         }
     }
 
+    pub fn with(register: Register, port: Port, rom: Rom) -> Self {
+        Self {
+            register: RefCell::new(register),
+            port: RefCell::new(port),
+            rom: RefCell::new(rom),
+        }
+    }
+
     pub fn fetch(&self) -> u8 {
         let pc = self.register.borrow().pc();
         if self.rom.borrow().size() <= pc {
@@ -57,28 +65,30 @@ impl CpuEmulator {
             Err(EmulatorErr::new("No match for opcode"))
         }
     }
+
+    pub fn proceed(&self) -> Result<(), EmulatorErr> {
+        let data = self.fetch();
+        let (opcode, im) = self.decode(data)?;
+
+        match opcode {
+            Opcode::MovA => Ok(self.mov_a(im)),
+            Opcode::MovB => Ok(self.mov_b(im)),
+            _ => unimplemented!(), // TODO
+        }
+    }
+
+    fn mov_a(&self, im: u8) {
+        self.register.borrow_mut().set_register_a(im);
+        self.register.borrow_mut().set_carry_flag(0);
+    }
+
+    fn mov_b(&self, im: u8) {
+        self.register.borrow_mut().set_register_b(im);
+        self.register.borrow_mut().set_carry_flag(0);
+    }
 }
 
 #[cfg(test)]
 mod tests {
-    use crate::emulator::CpuEmulator;
-    use crate::op::Opcode;
-
-    #[test]
-    fn test_use_im_opcode() {
-        let data = 0b00000011;
-        let emu = CpuEmulator::new();
-        let actual = emu.decode(data);
-        let expected_im: u8 = 0b0011;
-        assert_eq!(actual.unwrap(), (Opcode::AddA, expected_im));
-    }
-
-    #[test]
-    fn test_not_use_im_opcode() {
-        let data = 0b11100001;
-        let emu = CpuEmulator::new();
-        let actual = emu.decode(data);
-        let expected_im: u8 = 0;
-        assert_eq!(actual.unwrap(), (Opcode::Jnc, expected_im));
-    }
+    // TODO
 }
