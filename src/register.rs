@@ -1,8 +1,8 @@
 pub struct Register {
-    pub register_a: u8, // register a
-    pub register_b: u8, // register b
-    pub carry_flag: u8, // carry flag
-    pub pc: u8,         // program counter
+    register_a: u8, // register a
+    register_b: u8, // register b
+    carry_flag: u8, // carry flag
+    pc: u8,         // program counter
 }
 
 impl Register {

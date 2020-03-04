@@ -21,7 +21,7 @@ impl CpuEmulator {
     }
 
     pub fn fetch(&self) -> u8 {
-        let pc = self.register.borrow().pc;
+        let pc = self.register.borrow().pc();
         if self.rom.borrow().size() <= pc {
             return 0;
         }
