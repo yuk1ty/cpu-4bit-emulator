@@ -3,10 +3,7 @@ pub struct Rom {
 }
 
 impl Rom {
-    const MEMORY_SIZE: usize = 16;
-
-    pub fn new() -> Self {
-        let memory_array = Vec::with_capacity(Self::MEMORY_SIZE);
+    pub fn new(memory_array: Vec<u8>) -> Self {
         Self { memory_array }
     }
 

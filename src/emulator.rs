@@ -15,14 +15,6 @@ pub struct CpuEmulator {
 type ImData = u8;
 
 impl CpuEmulator {
-    pub fn new() -> Self {
-        Self {
-            register: RefCell::new(Register::new()),
-            port: RefCell::new(Port::new()),
-            rom: RefCell::new(Rom::new()),
-        }
-    }
-
     pub fn with(register: Register, port: Port, rom: Rom) -> Self {
         Self {
             register: RefCell::new(register),
@@ -90,5 +82,42 @@ impl CpuEmulator {
 
 #[cfg(test)]
 mod tests {
-    // TODO
+    use crate::emulator::CpuEmulator;
+    use crate::port::Port;
+    use crate::register::Register;
+    use crate::rom::Rom;
+
+    #[test]
+    fn test_mov_a() {
+        let rom = Rom::new(vec![0b00110001]);
+        let register = Register::new();
+        let port = Port::new(0b0000, 0b0000);
+        let emu = CpuEmulator::with(register, port, rom);
+        let proceeded = emu.proceed();
+
+        assert!(proceeded.is_ok());
+        assert_eq!(emu.register.borrow().register_a(), 1);
+        assert_eq!(emu.register.borrow().register_b(), 0);
+        assert_eq!(emu.register.borrow().pc(), 1);
+        assert_eq!(emu.register.borrow().carry_flag(), 0);
+        assert_eq!(emu.port.borrow().input(), 0);
+        assert_eq!(emu.port.borrow().output(), 0);
+    }
+
+    #[test]
+    fn test_mov_b() {
+        let rom = Rom::new(vec![0b01110001]);
+        let register = Register::new();
+        let port = Port::new(0b0000, 0b0000);
+        let emu = CpuEmulator::with(register, port, rom);
+        let proceeded = emu.proceed();
+
+        assert!(proceeded.is_ok());
+        assert_eq!(emu.register.borrow().register_a(), 0);
+        assert_eq!(emu.register.borrow().register_b(), 1);
+        assert_eq!(emu.register.borrow().pc(), 1);
+        assert_eq!(emu.register.borrow().carry_flag(), 0);
+        assert_eq!(emu.port.borrow().input(), 0);
+        assert_eq!(emu.port.borrow().output(), 0);
+    }
 }
