@@ -69,6 +69,8 @@ impl CpuEmulator {
             Opcode::AddB => Ok(self.add_b(im)),
             Opcode::MovA2B => Ok(self.mov_a2b(im)),
             Opcode::MovB2A => Ok(self.mov_b2a(im)),
+            Opcode::Jmp => Ok(self.jmp(im)),
+            Opcode::Jnc => Ok(self.jnc(im)),
             _ => unimplemented!(), // TODO
         }
     }
