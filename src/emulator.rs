@@ -116,6 +116,18 @@ impl CpuEmulator {
 
         self.register.borrow_mut().set_register_b(new_value & 0x0f)
     }
+
+    fn jmp(&self, im: u8) {
+        self.register.borrow_mut().set_pc(im);
+        self.register.borrow_mut().set_carry_flag(0);
+    }
+
+    fn jnc(&self, im: u8) {
+        if self.register.borrow().carry_flag() == 0 {
+            self.register.borrow_mut().set_pc(im);
+        }
+        self.register.borrow_mut().set_carry_flag(0);
+    }
 }
 
 #[cfg(test)]
