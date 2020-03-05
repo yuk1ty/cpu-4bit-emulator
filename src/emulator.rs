@@ -4,8 +4,8 @@ use crate::port::Port;
 use crate::register::Register;
 use crate::rom::Rom;
 use num_traits::FromPrimitive;
-use std::cell::RefCell;
 use std::borrow::Borrow;
+use std::cell::RefCell;
 
 pub struct CpuEmulator {
     register: RefCell<Register>,
