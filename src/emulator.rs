@@ -67,6 +67,8 @@ impl CpuEmulator {
             Opcode::MovB => Ok(self.mov_b(im)),
             Opcode::AddA => Ok(self.add_a(im)),
             Opcode::AddB => Ok(self.add_b(im)),
+            Opcode::MovA2B => Ok(self.mov_a2b(im)),
+            Opcode::MovB2A => Ok(self.mov_b2a(im)),
             _ => unimplemented!(), // TODO
         }
     }
@@ -78,6 +80,18 @@ impl CpuEmulator {
 
     fn mov_b(&self, im: u8) {
         self.register.borrow_mut().set_register_b(im);
+        self.register.borrow_mut().set_carry_flag(0);
+    }
+
+    fn mov_a2b(&self, im: u8) {
+        let register_b = self.register.borrow().register_b();
+        self.register.borrow_mut().set_register_a(register_b);
+        self.register.borrow_mut().set_carry_flag(0);
+    }
+
+    fn mov_b2a(&self, im: u8) {
+        let register_a = self.register.borrow().register_a();
+        self.register.borrow_mut().set_register_b(register_a);
         self.register.borrow_mut().set_carry_flag(0);
     }
 
@@ -138,6 +152,42 @@ mod cpu_tests {
         assert_eq!(emu.register.borrow().register_a(), 0);
         assert_eq!(emu.register.borrow().register_b(), 1);
         assert_eq!(emu.register.borrow().pc(), 1);
+        assert_eq!(emu.register.borrow().carry_flag(), 0);
+    }
+
+    #[test]
+    fn test_mov_a2b() {
+        let rom = Rom::new(vec![0b00010000]);
+        let mut register = Register::new();
+        register.set_register_b(2);
+        let port = Port::new(0b0000, 0b0000);
+        let emu = CpuEmulator::with(register, port, rom);
+
+        assert_eq!(emu.register.borrow().register_a(), 0);
+
+        let proceeded = emu.proceed();
+
+        assert!(proceeded.is_ok());
+        assert_eq!(emu.register.borrow().register_a(), 2);
+        assert_eq!(emu.register.borrow().register_b(), 2);
+        assert_eq!(emu.register.borrow().carry_flag(), 0);
+    }
+
+    #[test]
+    fn test_mov_b2a() {
+        let rom = Rom::new(vec![0b01000000]);
+        let mut register = Register::new();
+        register.set_register_a(2);
+        let port = Port::new(0b0000, 0b0000);
+        let emu = CpuEmulator::with(register, port, rom);
+
+        assert_eq!(emu.register.borrow().register_b(), 0);
+
+        let proceeded = emu.proceed();
+
+        assert!(proceeded.is_ok());
+        assert_eq!(emu.register.borrow().register_a(), 2);
+        assert_eq!(emu.register.borrow().register_b(), 2);
         assert_eq!(emu.register.borrow().carry_flag(), 0);
     }
 
