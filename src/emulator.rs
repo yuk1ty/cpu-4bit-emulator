@@ -4,7 +4,6 @@ use crate::port::Port;
 use crate::register::Register;
 use crate::rom::Rom;
 use num_traits::FromPrimitive;
-use std::borrow::Borrow;
 use std::cell::RefCell;
 
 pub struct CpuEmulator {
@@ -106,7 +105,7 @@ impl CpuEmulator {
 }
 
 #[cfg(test)]
-mod tests {
+mod cpu_tests {
     use crate::emulator::CpuEmulator;
     use crate::port::Port;
     use crate::register::Register;
@@ -172,5 +171,29 @@ mod tests {
         assert_eq!(emu.register.borrow().register_b(), 2);
         assert_eq!(emu.register.borrow().pc(), 1);
         assert_eq!(emu.register.borrow().carry_flag(), 0);
+    }
+}
+
+#[cfg(test)]
+mod cpu_integration_tests {
+    use crate::rom::Rom;
+    use crate::register::Register;
+    use crate::port::Port;
+    use crate::emulator::CpuEmulator;
+
+    #[test]
+    fn test_mov_a_and_add_a() {
+        let rom = Rom::new(vec![0b00110001, 0b00000001]);
+        let rom_size = rom.size();
+        let register = Register::new();
+        let port = Port::new(0b0000, 0b0000);
+        let emu = CpuEmulator::with(register, port, rom);
+
+        for _ in 0..rom_size {
+            emu.proceed().unwrap();
+        }
+
+        assert_eq!(emu.register.borrow().register_a(), 2);
+        assert_eq!(emu.register.borrow().pc(), 2);
     }
 }
