@@ -49,8 +49,9 @@ impl CpuEmulator {
                 | Opcode::MovA2B
                 | Opcode::MovB2A
                 | Opcode::Jmp
+                | Opcode::Jnc
                 | Opcode::OutIm => Ok((opcode, im)),
-                Opcode::Jnc | Opcode::InA | Opcode::InB | Opcode::OutB => Ok((opcode, 0)),
+                Opcode::InA | Opcode::InB | Opcode::OutB => Ok((opcode, 0)),
             }
         } else {
             // never comes
@@ -259,5 +260,77 @@ mod cpu_integration_tests {
 
         assert_eq!(emu.register.borrow().register_a(), 2);
         assert_eq!(emu.register.borrow().pc(), 2);
+    }
+
+    #[test]
+    fn test_jmp() {
+        // 0: MOV A, 0010
+        // 1: ADD A, 0011
+        // 2: JMP 0001
+        let rom = Rom::new(vec![0b00110010, 0b00000011, 0b11110001]);
+        let rom_size = rom.size();
+        let register = Register::new();
+        let port = Port::new(0b0000, 0b0000);
+        let emu = CpuEmulator::with(register, port, rom);
+
+        for _ in 0..rom_size {
+            emu.exec().unwrap();
+        }
+
+        assert_eq!(emu.register.borrow().pc(), 0b0001);
+        assert_eq!(emu.register.borrow().carry_flag(), 0b0000);
+        assert_eq!(emu.register.borrow().register_a(), 5);
+
+        emu.exec().unwrap();
+        assert_eq!(emu.register.borrow().register_a(), 8);
+    }
+
+    #[test]
+    fn test_jnc_with_carry_flag_zero() {
+        // 0: MOV A, 0010
+        // 1: ADD A, 0011
+        // 2: JNC 0001
+        let rom = Rom::new(vec![0b00110010, 0b00000011, 0b11100001]);
+        let rom_size = rom.size();
+        let mut register = Register::new();
+        register.set_carry_flag(0b0000);
+        let port = Port::new(0b0000, 0b0000);
+        let emu = CpuEmulator::with(register, port, rom);
+
+        for _ in 0..rom_size {
+            emu.exec().unwrap();
+        }
+
+        assert_eq!(emu.register.borrow().pc(), 0b00001);
+        assert_eq!(emu.register.borrow().carry_flag(), 0b0000);
+        assert_eq!(emu.register.borrow().register_a(), 5);
+
+        emu.exec().unwrap();
+        assert_eq!(emu.register.borrow().register_a(), 8);
+    }
+
+    #[test]
+    fn test_jnc_with_carry_flag_on() {
+        // 0: MOV A, 0010
+        // 1: ADD A, 0011
+        // 2: JNC 0001
+        let rom = Rom::new(vec![0b00110010, 0b00000011, 0b11100001]);
+        let rom_size = rom.size();
+        let mut register = Register::new();
+        register.set_carry_flag(1);
+        assert_eq!(register.carry_flag(), 1);
+        let port = Port::new(0b0000, 0b0000);
+        let emu = CpuEmulator::with(register, port, rom);
+
+        for _ in 0..rom_size {
+            emu.exec().unwrap();
+        }
+
+        assert_eq!(emu.register.borrow().pc(), 0b0001);
+        assert_eq!(emu.register.borrow().carry_flag(), 0b0000);
+        assert_eq!(emu.register.borrow().register_a(), 5);
+
+        emu.exec().unwrap();
+        assert_eq!(emu.register.borrow().register_a(), 8);
     }
 }
