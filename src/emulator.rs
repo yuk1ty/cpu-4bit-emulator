@@ -68,8 +68,8 @@ impl CpuEmulator {
             Opcode::MovB => Ok(self.mov_b(im)),
             Opcode::AddA => Ok(self.add_a(im)),
             Opcode::AddB => Ok(self.add_b(im)),
-            Opcode::MovA2B => Ok(self.mov_a2b(im)),
-            Opcode::MovB2A => Ok(self.mov_b2a(im)),
+            Opcode::MovA2B => Ok(self.mov_a2b()),
+            Opcode::MovB2A => Ok(self.mov_b2a()),
             Opcode::Jmp => Ok(self.jmp(im)),
             Opcode::Jnc => Ok(self.jnc(im)),
             _ => unimplemented!(), // TODO
@@ -86,13 +86,13 @@ impl CpuEmulator {
         self.register.borrow_mut().set_carry_flag(0);
     }
 
-    fn mov_a2b(&self, im: u8) {
+    fn mov_a2b(&self) {
         let register_b = self.register.borrow().register_b();
         self.register.borrow_mut().set_register_a(register_b);
         self.register.borrow_mut().set_carry_flag(0);
     }
 
-    fn mov_b2a(&self, im: u8) {
+    fn mov_b2a(&self) {
         let register_a = self.register.borrow().register_a();
         self.register.borrow_mut().set_register_b(register_a);
         self.register.borrow_mut().set_carry_flag(0);
