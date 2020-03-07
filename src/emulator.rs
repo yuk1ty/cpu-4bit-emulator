@@ -12,8 +12,6 @@ pub struct CpuEmulator {
     rom: RefCell<Rom>,
 }
 
-type ImData = u8;
-
 impl CpuEmulator {
     pub fn with(register: Register, port: Port, rom: Rom) -> Self {
         Self {
@@ -36,7 +34,7 @@ impl CpuEmulator {
         code
     }
 
-    fn decode(&self, data: u8) -> Result<(Opcode, ImData), EmulatorErr> {
+    fn decode(&self, data: u8) -> Result<(Opcode, u8), EmulatorErr> {
         let op = data >> 4;
         let im = data & 0x0f;
 
