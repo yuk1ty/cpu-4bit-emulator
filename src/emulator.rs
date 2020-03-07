@@ -72,7 +72,10 @@ impl CpuEmulator {
             Opcode::MovB2A => Ok(self.mov_b2a()),
             Opcode::Jmp => Ok(self.jmp(im)),
             Opcode::Jnc => Ok(self.jnc(im)),
-            _ => unimplemented!(), // TODO
+            Opcode::InA => Ok(self.in_a()),
+            Opcode::InB => Ok(self.in_b()),
+            Opcode::OutB => Ok(self.out_b()),
+            Opcode::OutIm => Ok(self.out_im(im)),
         }
     }
 
@@ -129,6 +132,29 @@ impl CpuEmulator {
         if self.register.borrow().carry_flag() == 0 {
             self.register.borrow_mut().set_pc(im);
         }
+        self.register.borrow_mut().set_carry_flag(0);
+    }
+
+    fn in_a(&self) {
+        let input_port = self.port.borrow().input();
+        self.register.borrow_mut().set_register_a(input_port);
+        self.register.borrow_mut().set_carry_flag(0);
+    }
+
+    fn in_b(&self) {
+        let input_port = self.port.borrow().input();
+        self.register.borrow_mut().set_register_b(input_port);
+        self.register.borrow_mut().set_carry_flag(0);
+    }
+
+    fn out_b(&self) {
+        let register_b = self.register.borrow().register_b();
+        self.port.borrow_mut().set_output(register_b);
+        self.register.borrow_mut().set_carry_flag(0);
+    }
+
+    fn out_im(&self, im: u8) {
+        self.port.borrow_mut().set_output(im);
         self.register.borrow_mut().set_carry_flag(0);
     }
 }
@@ -241,10 +267,10 @@ mod cpu_tests {
 
 #[cfg(test)]
 mod cpu_integration_tests {
-    use crate::rom::Rom;
-    use crate::register::Register;
-    use crate::port::Port;
     use crate::emulator::CpuEmulator;
+    use crate::port::Port;
+    use crate::register::Register;
+    use crate::rom::Rom;
 
     #[test]
     fn test_mov_a_and_add_a() {

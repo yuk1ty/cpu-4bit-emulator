@@ -6,8 +6,8 @@ pub struct Port {
 impl Port {
     pub fn new(input: u8, output: u8) -> Self {
         Self {
-            input: 0,
-            output: 0,
+            input,
+            output,
         }
     }
 
@@ -17,5 +17,9 @@ impl Port {
 
     pub fn output(&self) -> u8 {
         self.output
+    }
+
+    pub fn set_output(&mut self, im: u8) {
+        self.output = im;
     }
 }
