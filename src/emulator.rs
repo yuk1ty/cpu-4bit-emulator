@@ -14,6 +14,10 @@ pub struct CpuEmulator {
 
 impl CpuEmulator {
     pub fn with(register: Register, port: Port, rom: Rom) -> Self {
+        assert!(
+            rom.size() <= 16,
+            "Maximum memory size is 16. This program can't work."
+        );
         Self {
             register: RefCell::new(register),
             port: RefCell::new(port),
