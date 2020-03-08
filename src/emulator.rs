@@ -289,6 +289,34 @@ mod cpu_tests {
         assert_eq!(emu.register.borrow().register_b(), 1);
         assert_eq!(emu.register.borrow().carry_flag(), 0);
     }
+
+    #[test]
+    fn test_port_out_b() {
+        let rom = Rom::new(vec![0b10010000]);
+        let mut register = Register::new();
+        register.set_register_b(0b0001);
+        let port = Port::new(0b0000, 0b0000);
+        let emu = CpuEmulator::with(register, port, rom);
+        let proceeded = emu.exec();
+
+        assert!(proceeded.is_ok());
+        assert_eq!(emu.port.borrow().output(), 1);
+        assert_eq!(emu.register.borrow().carry_flag(), 0);
+    }
+
+    #[test]
+    fn test_port_out_im() {
+        let rom = Rom::new(vec![0b10110001]);
+        let register = Register::new();
+        let port = Port::new(0b0000, 0b0000);
+        let emu = CpuEmulator::with(register, port, rom);
+        let proceeded = emu.exec();
+
+        assert!(proceeded.is_ok());
+        assert_eq!(emu.port.borrow().output(), 1);
+        assert_eq!(emu.register.borrow().carry_flag(), 0);
+    }
+
 }
 
 #[cfg(test)]
