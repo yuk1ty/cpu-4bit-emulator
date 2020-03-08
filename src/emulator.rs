@@ -29,8 +29,6 @@ impl CpuEmulator {
 
         let code = self.rom.borrow().read(pc);
 
-        self.register.borrow_mut().incr_pc();
-
         code
     }
 
@@ -77,8 +75,13 @@ impl CpuEmulator {
                 Opcode::OutIm => self.out_im(im),
             };
 
+            // To prevent infinite loop
+            if opcode != Opcode::Jmp && opcode != Opcode::Jnc {
+                self.register.borrow_mut().incr_pc();
+            }
+
             if self.does_halt() {
-                return Ok(())
+                return Ok(());
             }
         }
     }
@@ -273,6 +276,18 @@ mod cpu_tests {
     }
 
     #[test]
+    fn test_jmp() {
+        let rom = Rom::new(vec![0b11110000]);
+        let register = Register::new();
+        let port = Port::new(0b0000, 0b0000);
+        let emu = CpuEmulator::with(register, port, rom);
+        let proceeded = emu.exec();
+
+        assert!(proceeded.is_ok());
+        assert_eq!(emu.register.borrow().pc(), 0);
+    }
+
+    #[test]
     fn test_port_in_a() {
         let rom = Rom::new(vec![0b00100000]);
         let register = Register::new();
@@ -326,5 +341,4 @@ mod cpu_tests {
         assert_eq!(emu.port.borrow().output(), 1);
         assert_eq!(emu.register.borrow().carry_flag(), 0);
     }
-
 }
