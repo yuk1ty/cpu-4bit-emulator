@@ -1,3 +1,4 @@
+#[derive(Clone)]
 pub struct Register {
     register_a: u8, // register a
     register_b: u8, // register b

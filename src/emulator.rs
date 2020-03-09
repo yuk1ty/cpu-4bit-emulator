@@ -91,7 +91,7 @@ impl CpuEmulator {
     }
 
     fn does_halt(&self) -> bool {
-        self.register.borrow().pc() >= self.rom.borrow().size() - 1
+        self.register.borrow().pc() >= self.rom.borrow().size()
     }
 
     fn mov_a(&self, im: u8) {
@@ -171,6 +171,10 @@ impl CpuEmulator {
     fn out_im(&self, im: u8) {
         self.port.borrow_mut().set_output(im);
         self.register.borrow_mut().set_carry_flag(0);
+    }
+
+    pub fn register(&self) -> Register {
+        self.register.borrow().clone()
     }
 }
 
@@ -281,14 +285,16 @@ mod cpu_tests {
 
     #[test]
     fn test_jmp() {
-        let rom = Rom::new(vec![0b11110000]);
+        let rom = Rom::new(vec![0b11110010, 0b00110001, 0b01110010]);
         let register = Register::new();
         let port = Port::new(0b0000, 0b0000);
         let emu = CpuEmulator::with(register, port, rom);
         let proceeded = emu.exec();
 
         assert!(proceeded.is_ok());
-        assert_eq!(emu.register.borrow().pc(), 0);
+        assert_eq!(emu.register.borrow().pc(), 3);
+        assert_eq!(emu.register.borrow().register_a(), 0);
+        assert_eq!(emu.register.borrow().register_b(), 2);
     }
 
     #[test]
