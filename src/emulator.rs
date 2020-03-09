@@ -173,8 +173,8 @@ impl CpuEmulator {
         self.register.borrow_mut().set_carry_flag(0);
     }
 
-    pub fn register(&self) -> Register {
-        self.register.borrow().clone()
+    pub fn out(self) {
+        println!("{}", self.port.borrow().output());
     }
 }
 
