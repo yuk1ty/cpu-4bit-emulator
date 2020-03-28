@@ -36,9 +36,9 @@ impl Parser {
                     .get(self.pos)
                     .ok_or_else(|| EmulatorErr::new("Failed to parse mov right hand side value"))?;
 
-                let token = if lhs == "B" || rhs == "A" {
+                let token = if lhs == "B" && rhs == "A" {
                     Token::MovBA
-                } else if lhs == "A" || rhs == "B" {
+                } else if lhs == "A" && rhs == "B" {
                     Token::MovAB
                 } else {
                     Token::Mov(Register::from(lhs.to_string()), rhs.to_string())

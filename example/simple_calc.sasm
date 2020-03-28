@@ -1,4 +1,4 @@
 mov A 1
 add A 1
-mov A B
+mov B A
 out B

@@ -1,3 +1,4 @@
+#[derive(Debug)]
 pub enum Register {
     A,
     B,
@@ -15,6 +16,7 @@ impl From<String> for Register {
     }
 }
 
+#[derive(Debug)]
 pub enum Token {
     Mov(Register, String),
     MovAB,

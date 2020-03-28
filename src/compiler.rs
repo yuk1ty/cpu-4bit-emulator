@@ -52,7 +52,7 @@ impl Compiler {
 mod compiler_tests {
     use crate::compiler::Compiler;
     use crate::token::Register;
-    use crate::token::Token::{Add, Jmp, Jnc, Mov, MovAB, MovBA, In, OutB, OutIm};
+    use crate::token::Token::{Add, In, Jmp, Jnc, Mov, MovAB, MovBA, OutB, OutIm};
 
     #[test]
     fn test_compile_mov_a() {
