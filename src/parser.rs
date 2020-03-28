@@ -25,9 +25,16 @@ impl Parser {
 
             if op == "mov" {
                 self.pos += 1;
-                let lhs = self.source.get(self.pos).unwrap();
+                let lhs = self
+                    .source
+                    .get(self.pos)
+                    .ok_or_else(|| EmulatorErr::new("Failed to parse mov left hand side value"))?;
+
                 self.pos += 1;
-                let rhs = self.source.get(self.pos).unwrap();
+                let rhs = self
+                    .source
+                    .get(self.pos)
+                    .ok_or_else(|| EmulatorErr::new("Failed to parse mov right hand side value"))?;
 
                 let token = if lhs == "B" || rhs == "A" {
                     Token::MovBA
@@ -42,9 +49,16 @@ impl Parser {
 
             if op == "add" {
                 self.pos += 1;
-                let lhs = self.source.get(self.pos).unwrap();
+                let lhs = self
+                    .source
+                    .get(self.pos)
+                    .ok_or_else(|| EmulatorErr::new("Failed to parse Add left hand side value"))?;
+
                 self.pos += 1;
-                let rhs = self.source.get(self.pos).unwrap();
+                let rhs = self
+                    .source
+                    .get(self.pos)
+                    .ok_or_else(|| EmulatorErr::new("Failed to parse Add right hand side value"))?;
 
                 let token = Token::Add(Register::from(lhs.to_string()), rhs.to_string());
 
@@ -53,13 +67,21 @@ impl Parser {
 
             if op == "jmp" {
                 self.pos += 1;
-                let im = self.source.get(self.pos).unwrap();
+                let im = self
+                    .source
+                    .get(self.pos)
+                    .ok_or_else(|| EmulatorErr::new("Failed to parse jmp im value"))?;
+
                 result.push(Token::Jmp(im.to_string()));
             }
 
             if op == "jnc" {
                 self.pos += 1;
-                let im = self.source.get(self.pos).unwrap();
+                let im = self
+                    .source
+                    .get(self.pos)
+                    .ok_or_else(|| EmulatorErr::new("Failed to parse jnc im value"))?;
+
                 result.push(Token::Jnc(im.to_string()));
             }
 
@@ -68,15 +90,16 @@ impl Parser {
                 let lhs = self.source.get(self.pos).unwrap();
                 self.pos += 1;
                 let im = self.source.get(self.pos).unwrap();
-                result.push(Token::In(
-                    Register::from(lhs.to_string()),
-                    im.to_string(),
-                ));
+                result.push(Token::In(Register::from(lhs.to_string()), im.to_string()));
             }
 
             if op == "out" {
                 self.pos += 1;
-                let im = self.source.get(self.pos).unwrap();
+                let im = self
+                    .source
+                    .get(self.pos)
+                    .ok_or_else(|| EmulatorErr::new("Failed to parse out im value"))?;
+
                 if im == "B" {
                     result.push(Token::OutB);
                 } else {

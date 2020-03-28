@@ -1,5 +1,5 @@
-use crate::token::{Token, Register};
 use crate::error::EmulatorErr;
+use crate::token::{Register, Token};
 
 pub struct Compiler;
 
