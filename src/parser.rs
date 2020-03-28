@@ -34,7 +34,7 @@ impl Parser {
                 } else if lhs == "A" || rhs == "B" {
                     Token::MovAB
                 } else {
-                    Token::Mov(Register::from(lhs.to_string()), rhs.to_string());
+                    Token::Mov(Register::from(lhs.to_string()), rhs.to_string())
                 };
 
                 result.push(token);
