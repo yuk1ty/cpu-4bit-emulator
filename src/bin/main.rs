@@ -43,7 +43,7 @@ fn main() {
     let port = Port::new(0b0000, 0b0000);
     let emulator = CpuEmulator::with(register, port, rom);
     match emulator.exec() {
-        Ok(_) => emulator.out(),
+        Ok(_) => (),
         Err(err) => panic!("{:?}", err),
     }
 }

@@ -1,0 +1,10 @@
+out 0011
+out 0110
+out 1100
+out 1000
+out 1000
+out 1100
+out 0110
+oub 0011
+out 0001
+jmp 0000
