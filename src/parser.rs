@@ -88,9 +88,7 @@ impl Parser {
             if op == "in" {
                 self.pos += 1;
                 let lhs = self.source.get(self.pos).unwrap();
-                self.pos += 1;
-                let im = self.source.get(self.pos).unwrap();
-                result.push(Token::In(Register::from(lhs.to_string()), im.to_string()));
+                result.push(Token::In(Register::from(lhs.to_string())));
             }
 
             if op == "out" {

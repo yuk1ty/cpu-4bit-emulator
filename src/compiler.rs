@@ -21,8 +21,8 @@ impl Compiler {
                 Token::Add(Register::B, im) => self.gen_bin_code(0b0101, im)?,
                 Token::Jmp(im) => self.gen_bin_code(0b1111, im)?,
                 Token::Jnc(im) => self.gen_bin_code(0b1110, im)?,
-                Token::In(Register::A, im) => self.gen_bin_code(0b0010, im)?,
-                Token::In(Register::B, im) => self.gen_bin_code(0b0110, im)?,
+                Token::In(Register::A) => self.gen_bin_code_with_zero_padding(0b0010),
+                Token::In(Register::B) => self.gen_bin_code_with_zero_padding(0b0110),
                 Token::OutB => self.gen_bin_code_with_zero_padding(0b1001),
                 Token::OutIm(im) => self.gen_bin_code(0b1011, im)?,
             };
@@ -113,14 +113,14 @@ mod compiler_tests {
     #[test]
     fn test_compile_in_a() {
         let compiler = Compiler::new();
-        let program = compiler.compile(vec![In(Register::A, "1".to_string())]);
+        let program = compiler.compile(vec![In(Register::A)]);
         assert_eq!(program.unwrap(), vec![0b00100001]);
     }
 
     #[test]
     fn test_compile_in_b() {
         let compiler = Compiler::new();
-        let program = compiler.compile(vec![In(Register::B, "1".to_string())]);
+        let program = compiler.compile(vec![In(Register::B)]);
         assert_eq!(program.unwrap(), vec![0b01100001]);
     }
 

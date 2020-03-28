@@ -24,7 +24,7 @@ pub enum Token {
     Add(Register, String),
     Jmp(String),
     Jnc(String),
-    In(Register, String),
+    In(Register),
     OutIm(String),
     OutB,
 }
