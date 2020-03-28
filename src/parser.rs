@@ -60,7 +60,7 @@ impl Parser {
             if op == "jnc" {
                 self.pos += 1;
                 let im = self.source.get(self.pos).unwrap();
-                result.push(Token::Jnc(im.to_string()))
+                result.push(Token::Jnc(im.to_string()));
             }
 
             if op == "in" {
@@ -71,13 +71,17 @@ impl Parser {
                 result.push(Token::In(
                     Register::from(lhs.to_string()),
                     im.to_string(),
-                ))
+                ));
             }
 
             if op == "out" {
                 self.pos += 1;
                 let im = self.source.get(self.pos).unwrap();
-                result.push(Token::OutIm(im.to_string()))
+                if im == "B" {
+                    result.push(Token::OutB);
+                } else {
+                    result.push(Token::OutIm(im.to_string()));
+                }
             }
 
             self.pos += 1;
