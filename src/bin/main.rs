@@ -8,7 +8,13 @@ use std::fs::File;
 use std::io::{BufRead, BufReader};
 
 fn main() {
-    let f = BufReader::new(File::open("example/simple_calc.sasm").expect("file not found"));
+    let args: Vec<String> = std::env::args().collect();
+
+    if args.len() != 2 {
+        panic!("Invalid args. Usage: [command] [file_path]");
+    }
+
+    let f = BufReader::new(File::open(args.get(1).unwrap()).expect("file not found"));
     let ops = f.lines().map(|line| line.unwrap()).collect::<Vec<String>>();
 
     let mut source = Vec::new();
