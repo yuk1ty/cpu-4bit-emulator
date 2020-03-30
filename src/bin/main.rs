@@ -15,18 +15,9 @@ fn main() {
     }
 
     let f = BufReader::new(File::open(args.get(1).unwrap()).expect("file not found"));
-    let ops = f.lines().map(|line| line.unwrap()).collect::<Vec<String>>();
+    let operations = f.lines().map(|line| line.unwrap()).collect::<Vec<String>>();
 
-    let mut source = Vec::new();
-    for op in ops {
-        let v: Vec<&str> = op.split(' ').collect();
-        for value in v {
-            let cloned = value.to_string();
-            source.push(cloned);
-        }
-    }
-
-    let mut parser = Parser::new(source);
+    let mut parser = Parser::new(operations);
     let tokens = match parser.parse() {
         Ok(tokens) => tokens,
         Err(err) => panic!("{:?}", err),

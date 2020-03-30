@@ -18,13 +18,13 @@ impl From<String> for Register {
 
 #[derive(Debug)]
 pub enum Token {
-    Mov(Register, String),
+    Mov(Register, u8),
     MovAB,
     MovBA,
-    Add(Register, String),
-    Jmp(String),
-    Jnc(String),
+    Add(Register, u8),
+    Jmp(u8),
+    Jnc(u8),
     In(Register),
-    OutIm(String),
+    OutIm(u8),
     OutB,
 }

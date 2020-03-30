@@ -7,7 +7,16 @@ pub struct Parser {
 }
 
 impl Parser {
-    pub fn new(source: Vec<String>) -> Parser {
+    pub fn new(operations: Vec<String>) -> Parser {
+        let mut source = Vec::new();
+        for operation in operations {
+            let split: Vec<&str> = operation.split(' ').collect();
+            for line in split {
+                let cloned = line.to_string();
+                source.push(cloned);
+            }
+        }
+
         Parser { pos: 0, source }
     }
 
@@ -41,7 +50,10 @@ impl Parser {
                 } else if lhs == "A" && rhs == "B" {
                     Token::MovAB
                 } else {
-                    Token::Mov(Register::from(lhs.to_string()), rhs.to_string())
+                    Token::Mov(
+                        Register::from(lhs.to_string()),
+                        self.from_binary_to_decimal(rhs)?,
+                    )
                 };
 
                 result.push(token);
@@ -60,7 +72,10 @@ impl Parser {
                     .get(self.pos)
                     .ok_or_else(|| EmulatorErr::new("Failed to parse Add right hand side value"))?;
 
-                let token = Token::Add(Register::from(lhs.to_string()), rhs.to_string());
+                let token = Token::Add(
+                    Register::from(lhs.to_string()),
+                    self.from_binary_to_decimal(rhs)?,
+                );
 
                 result.push(token);
             }
@@ -72,7 +87,7 @@ impl Parser {
                     .get(self.pos)
                     .ok_or_else(|| EmulatorErr::new("Failed to parse jmp im value"))?;
 
-                result.push(Token::Jmp(im.to_string()));
+                result.push(Token::Jmp(self.from_binary_to_decimal(im)?));
             }
 
             if op == "jnc" {
@@ -82,7 +97,7 @@ impl Parser {
                     .get(self.pos)
                     .ok_or_else(|| EmulatorErr::new("Failed to parse jnc im value"))?;
 
-                result.push(Token::Jnc(im.to_string()));
+                result.push(Token::Jnc(self.from_binary_to_decimal(im)?));
             }
 
             if op == "in" {
@@ -101,7 +116,7 @@ impl Parser {
                 if im == "B" {
                     result.push(Token::OutB);
                 } else {
-                    result.push(Token::OutIm(im.to_string()));
+                    result.push(Token::OutIm(self.from_binary_to_decimal(im)?));
                 }
             }
 
@@ -109,6 +124,12 @@ impl Parser {
         }
 
         Ok(result)
+    }
+
+    fn from_binary_to_decimal(&self, text: impl Into<String>) -> Result<u8, EmulatorErr> {
+        let ret = text.into();
+        let binary_to_decimal = u8::from_str_radix(&ret, 2);
+        binary_to_decimal.map_err(|_| EmulatorErr::new(&format!("Failed to parse string: {}", ret)))
     }
 }
 
@@ -121,10 +142,10 @@ mod parser_tests {
         let code = vec![
             "mov".to_string(),
             "A".to_string(),
-            "0b0001".to_string(),
+            "0001".to_string(),
             "add".to_string(),
             "A".to_string(),
-            "0b0001".to_string(),
+            "0001".to_string(),
         ];
         let mut parser = Parser::new(code);
         let result = parser.parse().unwrap();

@@ -9,22 +9,28 @@ impl Compiler {
     }
 
     pub fn compile(&self, tokens: Vec<Token>) -> Result<Vec<u8>, EmulatorErr> {
+        if tokens.is_empty() {
+            return Err(EmulatorErr::new(
+                "Failed to start to compile because token list is empty.",
+            ));
+        }
+
         let mut result = Vec::new();
 
         for token in tokens {
             let program = match token {
-                Token::Mov(Register::A, im) => self.gen_bin_code(0b0011, im)?,
-                Token::Mov(Register::B, im) => self.gen_bin_code(0b0111, im)?,
+                Token::Mov(Register::A, im) => self.gen_bin_code(0b0011, im),
+                Token::Mov(Register::B, im) => self.gen_bin_code(0b0111, im),
                 Token::MovAB => self.gen_bin_code_with_zero_padding(0b0001),
                 Token::MovBA => self.gen_bin_code_with_zero_padding(0b0100),
-                Token::Add(Register::A, im) => self.gen_bin_code(0b0000, im)?,
-                Token::Add(Register::B, im) => self.gen_bin_code(0b0101, im)?,
-                Token::Jmp(im) => self.gen_bin_code(0b1111, im)?,
-                Token::Jnc(im) => self.gen_bin_code(0b1110, im)?,
+                Token::Add(Register::A, im) => self.gen_bin_code(0b0000, im),
+                Token::Add(Register::B, im) => self.gen_bin_code(0b0101, im),
+                Token::Jmp(im) => self.gen_bin_code(0b1111, im),
+                Token::Jnc(im) => self.gen_bin_code(0b1110, im),
                 Token::In(Register::A) => self.gen_bin_code_with_zero_padding(0b0010),
                 Token::In(Register::B) => self.gen_bin_code_with_zero_padding(0b0110),
                 Token::OutB => self.gen_bin_code_with_zero_padding(0b1001),
-                Token::OutIm(im) => self.gen_bin_code(0b1011, im)?,
+                Token::OutIm(im) => self.gen_bin_code(0b1011, im),
             };
             result.push(program);
         }
@@ -32,13 +38,10 @@ impl Compiler {
         Ok(result)
     }
 
-    fn gen_bin_code(&self, op: u8, im: String) -> Result<u8, EmulatorErr> {
+    fn gen_bin_code(&self, op: u8, im: u8) -> u8 {
         let shift_op = op << 4;
-        let binary_to_decimal = u8::from_str_radix(&im, 2);
-        let shift_data = binary_to_decimal
-            .map_err(|_| EmulatorErr::new("Failed to parse im: {}"))?
-            & 0x0f;
-        Ok(shift_op | shift_data)
+        let shift_data = im & 0x0f;
+        shift_op | shift_data
     }
 
     fn gen_bin_code_with_zero_padding(&self, op: u8) -> u8 {
@@ -57,14 +60,14 @@ mod compiler_tests {
     #[test]
     fn test_compile_mov_a() {
         let compiler = Compiler::new();
-        let program = compiler.compile(vec![Mov(Register::A, "0001".to_string())]);
+        let program = compiler.compile(vec![Mov(Register::A, 1)]);
         assert_eq!(program.unwrap(), vec![0b00110001]);
     }
 
     #[test]
     fn test_compile_mov_b() {
         let compiler = Compiler::new();
-        let program = compiler.compile(vec![Mov(Register::B, "0001".to_string())]);
+        let program = compiler.compile(vec![Mov(Register::B, 1)]);
         assert_eq!(program.unwrap(), vec![0b01110001]);
     }
 
@@ -85,28 +88,28 @@ mod compiler_tests {
     #[test]
     fn test_compile_add_a() {
         let compiler = Compiler::new();
-        let program = compiler.compile(vec![Add(Register::A, "0001".to_string())]);
+        let program = compiler.compile(vec![Add(Register::A, 1)]);
         assert_eq!(program.unwrap(), vec![0b00000001]);
     }
 
     #[test]
     fn test_compile_add_b() {
         let compiler = Compiler::new();
-        let program = compiler.compile(vec![Add(Register::B, "0001".to_string())]);
+        let program = compiler.compile(vec![Add(Register::B, 1)]);
         assert_eq!(program.unwrap(), vec![0b01010001]);
     }
 
     #[test]
     fn test_compile_jmp() {
         let compiler = Compiler::new();
-        let program = compiler.compile(vec![Jmp("0001".to_string())]);
+        let program = compiler.compile(vec![Jmp(1)]);
         assert_eq!(program.unwrap(), vec![0b11110001]);
     }
 
     #[test]
     fn test_compile_jnc() {
         let compiler = Compiler::new();
-        let program = compiler.compile(vec![Jnc("0001".to_string())]);
+        let program = compiler.compile(vec![Jnc(1)]);
         assert_eq!(program.unwrap(), vec![0b11100001]);
     }
 
@@ -134,7 +137,7 @@ mod compiler_tests {
     #[test]
     fn test_compile_out_im() {
         let compiler = Compiler::new();
-        let program = compiler.compile(vec![OutIm("0001".to_string())]);
+        let program = compiler.compile(vec![OutIm(1)]);
         assert_eq!(program.unwrap(), vec![0b10110001]);
     }
 }
