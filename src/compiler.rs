@@ -3,9 +3,15 @@ use crate::token::{Register, Token};
 
 pub struct Compiler;
 
+impl Default for Compiler {
+    fn default() -> Self {
+        Self
+    }
+}
+
 impl Compiler {
     pub fn new() -> Self {
-        Compiler
+        Self::default()
     }
 
     pub fn compile(&self, tokens: Vec<Token>) -> Result<Vec<u8>, EmulatorErr> {
@@ -44,6 +50,7 @@ impl Compiler {
         shift_op | shift_data
     }
 
+    #[allow(clippy::erasing_op)]
     fn gen_bin_code_with_zero_padding(&self, op: u8) -> u8 {
         let shift_op = op << 4;
         let zero_padding = 0b0000 & 0x0f;

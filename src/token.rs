@@ -6,9 +6,9 @@ pub enum Register {
 
 impl From<String> for Register {
     fn from(a: String) -> Self {
-        if a == "A".to_string() {
+        if a == *"A" {
             Register::A
-        } else if a == "B".to_string() {
+        } else if a == *"B" {
             Register::B
         } else {
             panic!("couldn't parse")

@@ -30,9 +30,7 @@ impl CpuEmulator {
             return 0;
         }
 
-        let code = self.rom.read(pc);
-
-        code
+        self.rom.read(pc)
     }
 
     fn decode(&self, data: u8) -> Result<(Opcode, u8), EmulatorErr> {

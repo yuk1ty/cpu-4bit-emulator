@@ -6,14 +6,20 @@ pub struct Register {
     pc: u8,         // program counter
 }
 
+impl Default for Register {
+    fn default() -> Self {
+        Self {
+            register_a: u8::default(),
+            register_b: u8::default(),
+            carry_flag: u8::default(),
+            pc: u8::default(),
+        }
+    }
+}
+
 impl Register {
     pub fn new() -> Self {
-        Self {
-            register_a: 0,
-            register_b: 0,
-            carry_flag: 0,
-            pc: 0,
-        }
+        Self::default()
     }
 
     pub fn pc(&self) -> u8 {
