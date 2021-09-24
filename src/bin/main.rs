@@ -32,7 +32,7 @@ fn main() {
     let rom = Rom::new(program);
     let register = Register::new();
     let port = Port::new(0b0000, 0b0000);
-    let emulator = CpuEmulator::with(register, port, rom);
+    let mut emulator = CpuEmulator::with(register, port, rom);
     match emulator.exec() {
         Ok(_) => (),
         Err(err) => panic!("{:?}", err),

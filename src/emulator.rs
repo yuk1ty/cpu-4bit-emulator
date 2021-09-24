@@ -4,12 +4,11 @@ use crate::port::Port;
 use crate::register::Register;
 use crate::rom::Rom;
 use num_traits::FromPrimitive;
-use std::cell::RefCell;
 
 pub struct CpuEmulator {
-    register: RefCell<Register>,
-    port: RefCell<Port>,
-    rom: RefCell<Rom>,
+    register: Register,
+    port: Port,
+    rom: Rom,
 }
 
 impl CpuEmulator {
@@ -19,19 +18,19 @@ impl CpuEmulator {
             "Maximum memory size is 16. This program can't work."
         );
         Self {
-            register: RefCell::new(register),
-            port: RefCell::new(port),
-            rom: RefCell::new(rom),
+            register,
+            port,
+            rom,
         }
     }
 
     fn fetch(&self) -> u8 {
-        let pc = self.register.borrow().pc();
-        if self.rom.borrow().size() <= pc {
+        let pc = self.register.pc();
+        if self.rom.size() <= pc {
             return 0;
         }
 
-        let code = self.rom.borrow().read(pc);
+        let code = self.rom.read(pc);
 
         code
     }
@@ -59,7 +58,7 @@ impl CpuEmulator {
         }
     }
 
-    pub fn exec(&self) -> Result<(), EmulatorErr> {
+    pub fn exec(&mut self) -> Result<(), EmulatorErr> {
         loop {
             let data = self.fetch();
             let (opcode, im) = self.decode(data)?;
@@ -81,7 +80,7 @@ impl CpuEmulator {
 
             // To prevent infinite loop
             if opcode != Opcode::Jmp && opcode != Opcode::Jnc {
-                self.register.borrow_mut().incr_pc();
+                self.register.incr_pc();
             }
 
             if self.does_halt() {
@@ -91,88 +90,88 @@ impl CpuEmulator {
     }
 
     fn does_halt(&self) -> bool {
-        self.register.borrow().pc() >= self.rom.borrow().size()
+        self.register.pc() >= self.rom.size()
     }
 
-    fn mov_a(&self, im: u8) {
-        self.register.borrow_mut().set_register_a(im);
-        self.register.borrow_mut().set_carry_flag(0);
+    fn mov_a(&mut self, im: u8) {
+        self.register.set_register_a(im);
+        self.register.set_carry_flag(0);
     }
 
-    fn mov_b(&self, im: u8) {
-        self.register.borrow_mut().set_register_b(im);
-        self.register.borrow_mut().set_carry_flag(0);
+    fn mov_b(&mut self, im: u8) {
+        self.register.set_register_b(im);
+        self.register.set_carry_flag(0);
     }
 
-    fn mov_a2b(&self) {
-        let register_b = self.register.borrow().register_b();
-        self.register.borrow_mut().set_register_a(register_b);
-        self.register.borrow_mut().set_carry_flag(0);
+    fn mov_a2b(&mut self) {
+        let register_b = self.register.register_b();
+        self.register.set_register_a(register_b);
+        self.register.set_carry_flag(0);
     }
 
-    fn mov_b2a(&self) {
-        let register_a = self.register.borrow().register_a();
-        self.register.borrow_mut().set_register_b(register_a);
-        self.register.borrow_mut().set_carry_flag(0);
+    fn mov_b2a(&mut self) {
+        let register_a = self.register.register_a();
+        self.register.set_register_b(register_a);
+        self.register.set_carry_flag(0);
     }
 
-    fn add_a(&self, im: u8) {
-        let existence = self.register.borrow().register_a();
+    fn add_a(&mut self, im: u8) {
+        let existence = self.register.register_a();
         let new_value = existence + im;
 
         if new_value > 0x0f {
-            self.register.borrow_mut().set_carry_flag(1);
+            self.register.set_carry_flag(1);
         }
 
-        self.register.borrow_mut().set_register_a(new_value & 0x0f);
+        self.register.set_register_a(new_value & 0x0f);
     }
 
-    fn add_b(&self, im: u8) {
-        let existence = self.register.borrow().register_b();
+    fn add_b(&mut self, im: u8) {
+        let existence = self.register.register_b();
         let new_value = existence + im;
 
         if new_value > 0x0f {
-            self.register.borrow_mut().set_carry_flag(1);
+            self.register.set_carry_flag(1);
         }
 
-        self.register.borrow_mut().set_register_b(new_value & 0x0f)
+        self.register.set_register_b(new_value & 0x0f)
     }
 
-    fn jmp(&self, im: u8) {
-        self.register.borrow_mut().set_pc(im);
-        self.register.borrow_mut().set_carry_flag(0);
+    fn jmp(&mut self, im: u8) {
+        self.register.set_pc(im);
+        self.register.set_carry_flag(0);
     }
 
-    fn jnc(&self, im: u8) {
-        if self.register.borrow().carry_flag() == 0 {
-            self.register.borrow_mut().set_pc(im);
+    fn jnc(&mut self, im: u8) {
+        if self.register.carry_flag() == 0 {
+            self.register.set_pc(im);
         }
-        self.register.borrow_mut().set_carry_flag(0);
+        self.register.set_carry_flag(0);
     }
 
-    fn in_a(&self) {
-        let input_port = self.port.borrow().input();
-        self.register.borrow_mut().set_register_a(input_port);
-        self.register.borrow_mut().set_carry_flag(0);
+    fn in_a(&mut self) {
+        let input_port = self.port.input();
+        self.register.set_register_a(input_port);
+        self.register.set_carry_flag(0);
     }
 
-    fn in_b(&self) {
-        let input_port = self.port.borrow().input();
-        self.register.borrow_mut().set_register_b(input_port);
-        self.register.borrow_mut().set_carry_flag(0);
+    fn in_b(&mut self) {
+        let input_port = self.port.input();
+        self.register.set_register_b(input_port);
+        self.register.set_carry_flag(0);
     }
 
-    fn out_b(&self) {
-        let register_b = self.register.borrow().register_b();
-        self.port.borrow_mut().set_output(register_b);
-        self.register.borrow_mut().set_carry_flag(0);
-        println!("Port (B) Out: {}", self.port.borrow().output());
+    fn out_b(&mut self) {
+        let register_b = self.register.register_b();
+        self.port.set_output(register_b);
+        self.register.set_carry_flag(0);
+        println!("Port (B) Out: {}", self.port.output());
     }
 
-    fn out_im(&self, im: u8) {
-        self.port.borrow_mut().set_output(im);
-        self.register.borrow_mut().set_carry_flag(0);
-        println!("Port Out: {}", self.port.borrow().output());
+    fn out_im(&mut self, im: u8) {
+        self.port.set_output(im);
+        self.register.set_carry_flag(0);
+        println!("Port Out: {}", self.port.output());
     }
 }
 
@@ -188,14 +187,14 @@ mod cpu_tests {
         let rom = Rom::new(vec![0b00110001]);
         let register = Register::new();
         let port = Port::new(0b0000, 0b0000);
-        let emu = CpuEmulator::with(register, port, rom);
+        let mut emu = CpuEmulator::with(register, port, rom);
         let proceeded = emu.exec();
 
         assert!(proceeded.is_ok());
-        assert_eq!(emu.register.borrow().register_a(), 1);
-        assert_eq!(emu.register.borrow().register_b(), 0);
-        assert_eq!(emu.register.borrow().pc(), 1);
-        assert_eq!(emu.register.borrow().carry_flag(), 0);
+        assert_eq!(emu.register.register_a(), 1);
+        assert_eq!(emu.register.register_b(), 0);
+        assert_eq!(emu.register.pc(), 1);
+        assert_eq!(emu.register.carry_flag(), 0);
     }
 
     #[test]
@@ -203,14 +202,14 @@ mod cpu_tests {
         let rom = Rom::new(vec![0b01110001]);
         let register = Register::new();
         let port = Port::new(0b0000, 0b0000);
-        let emu = CpuEmulator::with(register, port, rom);
+        let mut emu = CpuEmulator::with(register, port, rom);
         let proceeded = emu.exec();
 
         assert!(proceeded.is_ok());
-        assert_eq!(emu.register.borrow().register_a(), 0);
-        assert_eq!(emu.register.borrow().register_b(), 1);
-        assert_eq!(emu.register.borrow().pc(), 1);
-        assert_eq!(emu.register.borrow().carry_flag(), 0);
+        assert_eq!(emu.register.register_a(), 0);
+        assert_eq!(emu.register.register_b(), 1);
+        assert_eq!(emu.register.pc(), 1);
+        assert_eq!(emu.register.carry_flag(), 0);
     }
 
     #[test]
@@ -219,16 +218,16 @@ mod cpu_tests {
         let mut register = Register::new();
         register.set_register_b(2);
         let port = Port::new(0b0000, 0b0000);
-        let emu = CpuEmulator::with(register, port, rom);
+        let mut emu = CpuEmulator::with(register, port, rom);
 
-        assert_eq!(emu.register.borrow().register_a(), 0);
+        assert_eq!(emu.register.register_a(), 0);
 
         let proceeded = emu.exec();
 
         assert!(proceeded.is_ok());
-        assert_eq!(emu.register.borrow().register_a(), 2);
-        assert_eq!(emu.register.borrow().register_b(), 2);
-        assert_eq!(emu.register.borrow().carry_flag(), 0);
+        assert_eq!(emu.register.register_a(), 2);
+        assert_eq!(emu.register.register_b(), 2);
+        assert_eq!(emu.register.carry_flag(), 0);
     }
 
     #[test]
@@ -237,16 +236,16 @@ mod cpu_tests {
         let mut register = Register::new();
         register.set_register_a(2);
         let port = Port::new(0b0000, 0b0000);
-        let emu = CpuEmulator::with(register, port, rom);
+        let mut emu = CpuEmulator::with(register, port, rom);
 
-        assert_eq!(emu.register.borrow().register_b(), 0);
+        assert_eq!(emu.register.register_b(), 0);
 
         let proceeded = emu.exec();
 
         assert!(proceeded.is_ok());
-        assert_eq!(emu.register.borrow().register_a(), 2);
-        assert_eq!(emu.register.borrow().register_b(), 2);
-        assert_eq!(emu.register.borrow().carry_flag(), 0);
+        assert_eq!(emu.register.register_a(), 2);
+        assert_eq!(emu.register.register_b(), 2);
+        assert_eq!(emu.register.carry_flag(), 0);
     }
 
     #[test]
@@ -255,14 +254,14 @@ mod cpu_tests {
         let mut register = Register::new();
         register.set_register_a(1);
         let port = Port::new(0b0000, 0b0000);
-        let emu = CpuEmulator::with(register, port, rom);
+        let mut emu = CpuEmulator::with(register, port, rom);
         let proceeded = emu.exec();
 
         assert!(proceeded.is_ok());
-        assert_eq!(emu.register.borrow().register_a(), 2);
-        assert_eq!(emu.register.borrow().register_b(), 0);
-        assert_eq!(emu.register.borrow().pc(), 1);
-        assert_eq!(emu.register.borrow().carry_flag(), 0);
+        assert_eq!(emu.register.register_a(), 2);
+        assert_eq!(emu.register.register_b(), 0);
+        assert_eq!(emu.register.pc(), 1);
+        assert_eq!(emu.register.carry_flag(), 0);
     }
 
     #[test]
@@ -271,14 +270,14 @@ mod cpu_tests {
         let mut register = Register::new();
         register.set_register_b(1);
         let port = Port::new(0b0000, 0b0000);
-        let emu = CpuEmulator::with(register, port, rom);
+        let mut emu = CpuEmulator::with(register, port, rom);
         let proceeded = emu.exec();
 
         assert!(proceeded.is_ok());
-        assert_eq!(emu.register.borrow().register_a(), 0);
-        assert_eq!(emu.register.borrow().register_b(), 2);
-        assert_eq!(emu.register.borrow().pc(), 1);
-        assert_eq!(emu.register.borrow().carry_flag(), 0);
+        assert_eq!(emu.register.register_a(), 0);
+        assert_eq!(emu.register.register_b(), 2);
+        assert_eq!(emu.register.pc(), 1);
+        assert_eq!(emu.register.carry_flag(), 0);
     }
 
     #[test]
@@ -286,13 +285,13 @@ mod cpu_tests {
         let rom = Rom::new(vec![0b11110010, 0b00110001, 0b01110010]);
         let register = Register::new();
         let port = Port::new(0b0000, 0b0000);
-        let emu = CpuEmulator::with(register, port, rom);
+        let mut emu = CpuEmulator::with(register, port, rom);
         let proceeded = emu.exec();
 
         assert!(proceeded.is_ok());
-        assert_eq!(emu.register.borrow().pc(), 3);
-        assert_eq!(emu.register.borrow().register_a(), 0);
-        assert_eq!(emu.register.borrow().register_b(), 2);
+        assert_eq!(emu.register.pc(), 3);
+        assert_eq!(emu.register.register_a(), 0);
+        assert_eq!(emu.register.register_b(), 2);
     }
 
     #[test]
@@ -301,12 +300,12 @@ mod cpu_tests {
         let register = Register::new();
         assert_eq!(register.register_a(), 0b0000);
         let port = Port::new(0b0001, 0b0000);
-        let emu = CpuEmulator::with(register, port, rom);
+        let mut emu = CpuEmulator::with(register, port, rom);
         let proceeded = emu.exec();
 
         assert!(proceeded.is_ok());
-        assert_eq!(emu.register.borrow().register_a(), 1);
-        assert_eq!(emu.register.borrow().carry_flag(), 0);
+        assert_eq!(emu.register.register_a(), 1);
+        assert_eq!(emu.register.carry_flag(), 0);
     }
 
     #[test]
@@ -315,12 +314,12 @@ mod cpu_tests {
         let register = Register::new();
         assert_eq!(register.register_b(), 0b0000);
         let port = Port::new(0b0001, 0b0000);
-        let emu = CpuEmulator::with(register, port, rom);
+        let mut emu = CpuEmulator::with(register, port, rom);
         let proceeded = emu.exec();
 
         assert!(proceeded.is_ok());
-        assert_eq!(emu.register.borrow().register_b(), 1);
-        assert_eq!(emu.register.borrow().carry_flag(), 0);
+        assert_eq!(emu.register.register_b(), 1);
+        assert_eq!(emu.register.carry_flag(), 0);
     }
 
     #[test]
@@ -329,12 +328,12 @@ mod cpu_tests {
         let mut register = Register::new();
         register.set_register_b(0b0001);
         let port = Port::new(0b0000, 0b0000);
-        let emu = CpuEmulator::with(register, port, rom);
+        let mut emu = CpuEmulator::with(register, port, rom);
         let proceeded = emu.exec();
 
         assert!(proceeded.is_ok());
-        assert_eq!(emu.port.borrow().output(), 1);
-        assert_eq!(emu.register.borrow().carry_flag(), 0);
+        assert_eq!(emu.port.output(), 1);
+        assert_eq!(emu.register.carry_flag(), 0);
     }
 
     #[test]
@@ -342,11 +341,11 @@ mod cpu_tests {
         let rom = Rom::new(vec![0b10110001]);
         let register = Register::new();
         let port = Port::new(0b0000, 0b0000);
-        let emu = CpuEmulator::with(register, port, rom);
+        let mut emu = CpuEmulator::with(register, port, rom);
         let proceeded = emu.exec();
 
         assert!(proceeded.is_ok());
-        assert_eq!(emu.port.borrow().output(), 1);
-        assert_eq!(emu.register.borrow().carry_flag(), 0);
+        assert_eq!(emu.port.output(), 1);
+        assert_eq!(emu.register.carry_flag(), 0);
     }
 }
