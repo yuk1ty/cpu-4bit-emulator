@@ -2,7 +2,7 @@
 name = "cpu-4bit-emulator"
 version = "0.1.0"
 authors = ["yytyd <yuki.multiplus@gmail.com>"]
-edition = "2018"
+edition = "2021"
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
